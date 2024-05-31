@@ -4,6 +4,8 @@ const { sequelize } = require('../util/db')
 
 class Blog extends Model {}
 
+const currentYear = new Date().getFullYear();
+
 Blog.init({
     id: {
       type: DataTypes.INTEGER,
@@ -24,11 +26,23 @@ Blog.init({
     likes: {
       type: DataTypes.INTEGER,
       defaultValue: 0
+    },
+    year: {
+      type: DataTypes.INTEGER,
+      validate: {
+        min: 1991,
+        max: currentYear,
+        isInt: true,
+        customValidator(value) {
+          if (value < 1991 || value > currentYear) {
+            throw new Error(`Year must be between 1991 and ${currentYear}`);
+          }
+        }
+      }
     }
   }, {
     sequelize,
     underscored: true, // taulun nimi Blog -> blogs (kaksi osaisessa _ (studyGroup -> study_group))
-    timestamps: false,
     modelName: 'blog'
   })
 
