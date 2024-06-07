@@ -11,6 +11,7 @@ const blogsRouter = require('./controllers/blogs')
 const usersRouter = require('./controllers/users')
 const loginRouter = require('./controllers/login')
 const customRouter = require('./controllers/custom')
+const readlistRouter = require('./controllers/readlists')
 
 app.use(express.json())
 
@@ -18,6 +19,7 @@ app.use('/api/blogs', blogsRouter)
 app.use('/api/users', usersRouter)
 app.use('/api/login', loginRouter)
 app.use('/api', customRouter)
+app.use('/api/readlists', readlistRouter)
 
 app.use(errorHandler)
 
