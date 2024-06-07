@@ -3,6 +3,7 @@ require('express-async-errors')
 
 const { Blog } = require('../models')
 const { User } = require('../models')
+const { Session } = require('../models')
 const { Op } = require('sequelize')
 const { tokenExtractor } = require('../middlewares/tokenextractor')
 
@@ -44,12 +45,35 @@ router.get('/', async (req, res) => {
   router.post('/', tokenExtractor, async (req, res) => {
     const user = await User.findByPk(req.decodedToken.id)
     const blog = await Blog.create({ ...req.body, userId: user.id })
+    const authorization = req.get('authorization').substring(7)
+    const session = await Session.findOne({ where: { token: authorization }})
+
+    if (!session) {
+      return res.status(400).json({ error: 'Please log in.' })
+    }
+
+    if (user.disabled) {
+      await Session.destroy({ where: { userId: req.decodedToken.id } });
+      return res.status(400).json({ error: 'account disabled, please contact admin' })
+    }
+
     return res.json(blog)
   })
   
   router.delete('/:id', tokenExtractor, async (req, res) => {
     const user = await User.findByPk(req.decodedToken.id)
     const blog = await Blog.findByPk(req.params.id)
+    const authorization = req.get('authorization').substring(7)
+    const session = await Session.findOne({ where: { token: authorization }})
+
+    if (!session) {
+      return res.status(400).json({ error: 'Please log in.' })
+    }
+
+    if (user.disabled) {
+      await Session.destroy({ where: { userId: req.decodedToken.id } });
+      return res.status(400).json({ error: 'account disabled, please contact admin' })
+    }
 
     if (blog.userId !== user.id) {
       return res.status(400).json({ error: 'token missing or invalid' })
